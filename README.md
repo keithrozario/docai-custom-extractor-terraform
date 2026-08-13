@@ -169,41 +169,49 @@ storage_bucket_name = "docai-YOUR_PROJECT_ID-a6dfe5e7"
 
 ---
 
-## 🎯 Dataset Management, Document Import & Training Workflow
+## ⚡ Zero-Shot Extraction Capability
 
-### How Schemas Work in Document AI
-In Document AI Workbench:
-- **Dataset Schema**: Updated via `update_schema.sh` and visible under **Document AI** $\rightarrow$ **Train / Build** $\rightarrow$ **Edit Schema**.
-- **Generative AI Foundation Models**: Custom Extractors automatically utilize Google's **Generative AI Foundation Model** (`pretrained-foundation-model-v1.5-pro`) to perform **Zero-Shot / Few-Shot Extraction** instantly using your schema without needing full custom model training!
+Google Cloud Document AI Custom Extractors natively leverage Google's **Generative AI Foundation Models** (`pretrained-foundation-model-v1.5-pro` / `v1.5`).
 
-### 📄 Sample Documents & Source Reference
-
-> [!NOTE]
-> **Custom Synthetic Test Documents**:
-> This repository includes **5 custom sample invoice PDF documents** located in the [samples/](file:///home/keith_krozario_altostrat_com/projects/docAi-test/samples) folder, generated specifically for testing Document AI Custom Extractors without external third-party dependencies:
->
-> 1. **`invoice1_acme_corp.pdf`**: Acme Industrial Solutions (`INV-2026-001`, `$1,250.00`, `2026-03-15`)
-> 2. **`invoice2_apex_logistics.pdf`**: Apex Global Logistics (`APX-88492`, `$3,840.50`, `2026-04-02`)
-> 3. **`invoice3_global_supplies.pdf`**: Global Office Supplies Co (`GOS-10492`, `$485.25`, `2026-05-10`)
-> 4. **`invoice4_nexus_software.pdf`**: Nexus Cloud Systems Inc (`NXS-99201`, `$2,100.00`, `2026-06-01`)
-> 5. **`invoice5_summit_consulting.pdf`**: Summit Advisory Group (`SAG-77310`, `$5,500.00`, `2026-07-22`)
->
-> You can generate additional sample invoices anytime using the included [generate_invoices.py](file:///home/keith_krozario_altostrat_com/projects/docAi-test/generate_invoices.py) script.
+### Key Benefits of Zero-Shot Extraction:
+- **No Model Training Required**: Extraction works **instantly** out-of-the-box once `schema.json` is applied.
+- **No Bounding Box Annotations Needed**: You do NOT need labeled training documents or manual annotations to start extracting entities.
+- **High Precision**: Understands contextual document semantics and extracts text, amounts, dates, and nested line item tables directly based on field names and display names in `schema.json`.
 
 ---
 
-### Step 1: Upload Raw Training / Test Documents to GCS (Automated in Terraform)
+## 🚀 Instant Zero-Shot Workflow (Recommended)
 
-> **Baked directly into Terraform**:
-> All sample PDFs located in the `samples/` folder are **automatically uploaded** to `gs://<bucket_name>/source-docs/` during `terraform apply` via the `google_storage_bucket_object.sample_documents` resource.
+To run instant zero-shot document extraction without fine-tuning:
+
+1. **Deploy Infrastructure**:
+   ```bash
+   terraform apply -auto-approve
+   ```
+   This automatically provisions the processor, Cloud Storage bucket, dataset, applies `schema.json`, and uploads sample documents to `gs://<bucket_name>/source-docs/`.
+
+2. **Process Any Document Immediately**:
+   Call the `:process` endpoint directly via cURL or Python SDK (see [Testing Document Extraction](#-testing-document-extraction-inference)). Entities defined in `schema.json` will be extracted with high confidence immediately!
+
+---
+
+## 🎯 (Optional) Dataset Management & Fine-Tuning Workflow
+
+> [!NOTE]
+> **When is Fine-Tuning Needed?**
+> Custom model fine-tuning (`train_version.sh`) is **100% optional**. You only need to fine-tune if you have complex edge-case documents that require custom model weight adjustments beyond the standard Foundation Model capabilities.
 >
-> If you add new documents to `samples/`, simply re-run `terraform apply` to upload them automatically.
+> **Prerequisite for Fine-Tuning**: Fine-tuning requires at least **1 or more documents with ground-truth human bounding-box annotations** added via the Document AI Google Cloud Console Workbench UI.
+
+### Step 1: Upload Raw Documents (Automated in Terraform)
+
+> All sample PDFs located in the `samples/` folder are **automatically uploaded** to `gs://<bucket_name>/source-docs/` during `terraform apply`.
 
 ---
 
 ### Step 2: Import Documents into Dataset (`import_documents.sh`)
 
-Import the uploaded documents from Cloud Storage into the Document AI Dataset using [import_documents.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/import_documents.sh):
+Import uploaded documents into the Document AI Dataset using [import_documents.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/import_documents.sh):
 
 ```bash
 ./import_documents.sh <location> <processor_id> <bucket_name>
@@ -214,9 +222,9 @@ Import the uploaded documents from Cloud Storage into the Document AI Dataset us
 
 ---
 
-### Step 3: Train / Fine-Tune a Custom Processor Version (`train_version.sh`)
+### Step 3: (Optional) Fine-Tune Custom Processor Version (`train_version.sh`)
 
-If you have annotated documents and wish to fine-tune a dedicated custom `ProcessorVersion`, execute [train_version.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/train_version.sh):
+If you have annotated documents in your dataset and wish to train a dedicated custom `ProcessorVersion`, execute [train_version.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/train_version.sh):
 
 ```bash
 ./train_version.sh <location> <processor_id> [version_display_name] [base_version]
@@ -227,9 +235,9 @@ If you have annotated documents and wish to fine-tune a dedicated custom `Proces
 
 ---
 
-### Step 4: Publish / Set Default Processor Version (`publish_version.sh`)
+### Step 4: (Optional) Publish Default Processor Version (`publish_version.sh`)
 
-To set a newly trained processor version as the active default model version, execute [publish_version.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/publish_version.sh):
+To set a newly fine-tuned processor version as the active default model version, execute [publish_version.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/publish_version.sh):
 
 ```bash
 ./publish_version.sh <location> <processor_id> <version_id>
