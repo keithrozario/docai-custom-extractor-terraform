@@ -1,5 +1,7 @@
 {
   "documentSchema": {
+    "displayName": "CDE Schema",
+    "description": "Document Schema for Custom Extractor",
     "entityTypes": [
       {
         "name": "custom_extraction_document_type",

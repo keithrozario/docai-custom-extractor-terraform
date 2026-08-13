@@ -3,8 +3,22 @@ set -e
 
 PROJECT_ID="agentspace-krozario"
 LOCATION="us"
-PROCESSOR_ID="a0ec20db13b96b75"
-BUCKET_NAME="docai-agentspace-krozario-9d11f433"
+
+# Fetch dynamically from terraform if available, or fallback
+if command -v terraform &> /dev/null && [ -d "terraform" ]; then
+  PROCESSOR_FULL_ID=$(cd terraform && terraform output -raw processor_id 2>/dev/null || true)
+  BUCKET_NAME=$(cd terraform && terraform output -raw storage_bucket_name 2>/dev/null || true)
+fi
+
+if [ -n "$PROCESSOR_FULL_ID" ]; then
+  PROCESSOR_ID="${PROCESSOR_FULL_ID##*/}"
+else
+  PROCESSOR_ID="28631a67cae635ce"
+fi
+
+if [ -z "$BUCKET_NAME" ]; then
+  BUCKET_NAME="docai-agentspace-krozario-c3c790fd"
+fi
 
 TOKEN=$(gcloud auth print-access-token)
 ENDPOINT="https://${LOCATION}-documentai.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/processors/${PROCESSOR_ID}:process"
