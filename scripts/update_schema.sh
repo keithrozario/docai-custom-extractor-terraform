@@ -19,4 +19,15 @@ RESPONSE=$(curl -s -X PATCH \
   -d @"${SCHEMA_FILE}" \
   "https://${LOCATION}-documentai.googleapis.com/v1beta3/${PROCESSOR_ID}/dataset/datasetSchema?updateMask=documentSchema")
 
-echo "Response: $RESPONSE"
+echo "Schema Update Response: $RESPONSE"
+
+echo "Setting default processor version to Foundation Model (pretrained-foundation-model-v1.5-pro-2025-06-20)..."
+SET_VERSION_RESPONSE=$(curl -s -X POST \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "defaultProcessorVersion": "'"${PROCESSOR_ID}"'/processorVersions/pretrained-foundation-model-v1.5-pro-2025-06-20"
+  }' \
+  "https://${LOCATION}-documentai.googleapis.com/v1/${PROCESSOR_ID}:setDefaultProcessorVersion")
+
+echo "Default Version Response: $SET_VERSION_RESPONSE"
