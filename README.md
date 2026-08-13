@@ -77,7 +77,7 @@ The `terraform/schema.json` file dictates **which entities/fields** Document AI 
 
 ### Deploy with Terraform
 
-The repository comes pre-configured with sane defaults in `terraform/terraform.tfvars`. **No manual file edits are required for your first run** — Terraform automatically detects your active GCP project configured in `gcloud` (`gcloud config get-value project`).
+The repository comes with `terraform/terraform.tfvars` pre-configured with sane defaults. **No configuration or file edits are needed** — Terraform automatically detects your active GCP project configured in `gcloud` (`gcloud config get-value project`).
 
 Simply run:
 
@@ -89,20 +89,6 @@ terraform init
 
 # Deploy infrastructure to GCP
 terraform apply -auto-approve
-```
-
-*(Optional)* If you wish to explicitly override the target GCP project or settings, edit `terraform/terraform.tfvars`:
-
-```hcl
-# project_id             = "your-gcp-project-id"  # Uncomment to override gcloud default
-region                 = "us-central1"
-location               = "us"
-processor_display_name = "docai-custom-extractor"
-create_gcs_bucket      = true
-enable_apis            = true
-apply_schema           = true
-schema_file            = "schema.json"
-create_dataset         = true
 ```
 
 Upon completion, Terraform outputs key details:
