@@ -12,35 +12,6 @@ This project provides an automated Terraform setup to provision a **Google Cloud
 - **Dataset Initialization**: Binds processor dataset storage to `gs://docai-{project_id}-{random_id}/dataset/`.
 - **Dataset Schema Auto-Provisioning**: Programmatically updates `datasetSchema` with custom extraction fields via Document AI `v1beta3` REST API.
 
----
-
----
-
-## 📁 Repository Folder Structure
-
-```text
-.
-├── terraform/                # Terraform IaC configurations
-│   ├── main.tf               # Core resources (Processor, GCS Bucket, Schema & Dataset provisioning)
-│   ├── variables.tf          # Input variables & defaults
-│   ├── outputs.tf            # Deployment outputs (processor_id, bucket_name)
-│   ├── providers.tf          # Terraform Google provider configuration
-│   ├── schema.json           # Custom Extractor JSON entity schema
-│   └── terraform.tfvars.example
-├── scripts/                  # Shell & Python helper scripts
-│   ├── import_documents.sh   # Import GCS documents into Document AI Dataset
-│   ├── update_schema.sh      # PATCH processor datasetSchema via REST API
-│   ├── update_dataset.sh     # PATCH processor dataset binding via REST API
-│   ├── train_version.sh      # Trigger custom model version fine-tuning
-│   ├── publish_version.sh    # Set active default processor model version
-│   └── generate_invoices.py  # Python script to generate synthetic test invoice PDFs
-├── samples/                  # 5 sample test invoice PDFs
-├── README.md                 # Project documentation
-└── .gitignore                # Git ignore rules
-```
-
----
-
 ## 📋 Prerequisites
 
 Before starting, ensure you have the following installed and configured:
@@ -52,15 +23,6 @@ Before starting, ensure you have the following installed and configured:
    - `roles/documentai.editor` or `roles/owner`
    - `roles/storage.admin`
    - `roles/serviceusage.serviceUsageAdmin`
-
-### Authentication Setup
-Run the following commands to authenticate `gcloud` and generate Application Default Credentials (ADC) for Terraform:
-
-```bash
-gcloud auth login
-gcloud auth application-default login
-gcloud config set project YOUR_PROJECT_ID
-```
 
 ---
 
@@ -122,14 +84,7 @@ The `terraform/schema.json` file dictates **which entities/fields** Document AI 
 
 ## 🚀 Spinning Up From Scratch
 
-### Step 1: Change to Terraform Directory
-Navigate into the `terraform/` folder:
-
-```bash
-cd terraform
-```
-
-### Step 2: Configure `terraform.tfvars`
+### Step 1: Configure `terraform.tfvars`
 Create your local environment configuration file from the example template:
 
 ```bash
@@ -150,14 +105,11 @@ schema_file            = "schema.json"
 create_dataset         = true
 ```
 
-### Step 3: Deploy with Terraform
+### Step 2: Deploy with Terraform
 
 ```bash
 # Initialize Terraform providers
 terraform init
-
-# Review execution plan
-terraform plan
 
 # Apply changes to GCP
 terraform apply -auto-approve
