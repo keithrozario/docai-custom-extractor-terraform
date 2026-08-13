@@ -1,14 +1,21 @@
+# Fetch current GCP client configuration (active gcloud project if var.project_id is empty/null)
+data "google_client_config" "current" {}
+
+locals {
+  project_id = (var.project_id != null && var.project_id != "") ? var.project_id : data.google_client_config.current.project
+}
+
 # Enable required Google Cloud Service APIs
 resource "google_project_service" "documentai" {
   count              = var.enable_apis ? 1 : 0
-  project            = var.project_id
+  project            = local.project_id
   service            = "documentai.googleapis.com"
   disable_on_destroy = false
 }
 
 resource "google_project_service" "storage" {
   count              = var.enable_apis ? 1 : 0
-  project            = var.project_id
+  project            = local.project_id
   service            = "storage.googleapis.com"
   disable_on_destroy = false
 }
@@ -32,7 +39,7 @@ resource "random_id" "bucket_prefix" {
 # Optional Cloud Storage Bucket for document input/output and dataset management
 resource "google_storage_bucket" "docai_bucket" {
   count                       = var.create_gcs_bucket ? 1 : 0
-  name                        = "docai-${var.project_id}-${random_id.bucket_prefix.hex}"
+  name                        = "docai-${local.project_id}-${random_id.bucket_prefix.hex}"
   location                    = var.location == "us" ? "US" : (var.location == "eu" ? "EU" : var.region)
   force_destroy               = true
   uniform_bucket_level_access = true
@@ -105,4 +112,3 @@ resource "google_storage_bucket_object" "sample_documents" {
     google_storage_bucket.docai_bucket
   ]
 }
-

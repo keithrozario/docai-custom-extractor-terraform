@@ -18,6 +18,6 @@ terraform {
 }
 
 provider "google" {
-  project = var.project_id
+  project = (var.project_id != null && var.project_id != "") ? var.project_id : null
   region  = var.region
 }

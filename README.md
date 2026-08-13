@@ -3,15 +3,6 @@
 This project provides an automated Terraform setup to provision a **Google Cloud Document AI Custom Extractor** (`CUSTOM_EXTRACTION_PROCESSOR`), configure its **Cloud Storage Bucket**, programmatically define its **Extraction Entity Schema** (`schema.json`), initialize its **Document AI Dataset**, and run end-to-end training and document extraction.
 
 ---
-
-## 🏗️ Architecture & Resources Provisioned
-
-- **GCP Service APIs**: `documentai.googleapis.com`, `storage.googleapis.com`
-- **Document AI Processor**: `CUSTOM_EXTRACTION_PROCESSOR` (`location = "us"` or `"eu"`)
-- **Cloud Storage Bucket**: `docai-{project_id}-{random_id}` for dataset storage, raw documents, and exported annotations.
-- **Dataset Initialization**: Binds processor dataset storage to `gs://docai-{project_id}-{random_id}/dataset/`.
-- **Dataset Schema Auto-Provisioning**: Programmatically updates `datasetSchema` with custom extraction fields via Document AI `v1beta3` REST API.
-
 ## 📋 Prerequisites
 
 Before starting, ensure you have the following installed and configured:
@@ -84,17 +75,26 @@ The `terraform/schema.json` file dictates **which entities/fields** Document AI 
 
 ## 🚀 Spinning Up From Scratch
 
-### Step 1: Configure `terraform.tfvars`
-Create your local environment configuration file from the example template:
+### Deploy with Terraform
+
+The repository comes pre-configured with sane defaults in `terraform/terraform.tfvars`. **No manual file edits are required for your first run** — Terraform automatically detects your active GCP project configured in `gcloud` (`gcloud config get-value project`).
+
+Simply run:
 
 ```bash
-cp terraform.tfvars.example terraform.tfvars
+cd terraform
+
+# Initialize Terraform providers
+terraform init
+
+# Deploy infrastructure to GCP
+terraform apply -auto-approve
 ```
 
-Edit `terraform.tfvars` to set your target GCP Project ID:
+*(Optional)* If you wish to explicitly override the target GCP project or settings, edit `terraform/terraform.tfvars`:
 
 ```hcl
-project_id             = "your-gcp-project-id"
+# project_id             = "your-gcp-project-id"  # Uncomment to override gcloud default
 region                 = "us-central1"
 location               = "us"
 processor_display_name = "docai-custom-extractor"
@@ -103,16 +103,6 @@ enable_apis            = true
 apply_schema           = true
 schema_file            = "schema.json"
 create_dataset         = true
-```
-
-### Step 2: Deploy with Terraform
-
-```bash
-# Initialize Terraform providers
-terraform init
-
-# Apply changes to GCP
-terraform apply -auto-approve
 ```
 
 Upon completion, Terraform outputs key details:

@@ -1,6 +1,7 @@
 variable "project_id" {
   type        = string
-  description = "The GCP Project ID where resources will be deployed."
+  description = "The GCP Project ID where resources will be deployed. Defaults to the active gcloud project if omitted or set to null/empty string."
+  default     = null
 }
 
 variable "region" {
@@ -23,7 +24,7 @@ variable "location" {
 variable "processor_display_name" {
   type        = string
   description = "The display name of the Document AI Custom Extraction Processor."
-  default     = "custom-extractor"
+  default     = "docai-custom-extractor"
 }
 
 variable "enable_apis" {
