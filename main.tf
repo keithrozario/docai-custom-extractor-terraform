@@ -69,7 +69,8 @@ resource "null_resource" "update_processor_schema" {
   }
 
   depends_on = [
-    google_document_ai_processor.custom_extractor
+    google_document_ai_processor.custom_extractor,
+    null_resource.initialize_processor_dataset
   ]
 }
 
