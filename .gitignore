@@ -14,6 +14,7 @@ override.tf.json
 # CLI & Environment
 .env
 *.log
+venv/
 
 # OS / Editor generated
 .DS_Store

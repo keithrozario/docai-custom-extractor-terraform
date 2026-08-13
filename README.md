@@ -179,12 +179,16 @@ In Document AI Workbench:
 ### 📄 Sample Documents & Source Reference
 
 > [!NOTE]
-> **Source of Demo Documents**:
-> The sample invoice PDF documents (`invoice1.pdf` and `invoice2.pdf`) included in this repository and used for testing/demo extraction are publicly available sample test assets sourced from Microsoft Azure Samples:
-> - **Invoice 1 (`invoice1.pdf`)**: [Azure Cognitive Services REST API Samples Repository](https://github.com/Azure-Samples/cognitive-services-REST-api-samples/tree/master/curl/form-recognizer/rest-api)
-> - **Invoice 2 (`invoice2.pdf`)**: [Azure AI Content Understanding Assets Repository](https://github.com/Azure-Samples/azure-ai-content-understanding-assets)
+> **Custom Synthetic Test Documents**:
+> This repository includes **5 custom sample invoice PDF documents** located in the [samples/](file:///home/keith_krozario_altostrat_com/projects/docAi-test/samples) folder, generated specifically for testing Document AI Custom Extractors without external third-party dependencies:
 >
-> You can download these sample invoices directly into the `samples/` folder or supply your own business invoices/PDFs for testing.
+> 1. **`invoice1_acme_corp.pdf`**: Acme Industrial Solutions (`INV-2026-001`, `$1,250.00`, `2026-03-15`)
+> 2. **`invoice2_apex_logistics.pdf`**: Apex Global Logistics (`APX-88492`, `$3,840.50`, `2026-04-02`)
+> 3. **`invoice3_global_supplies.pdf`**: Global Office Supplies Co (`GOS-10492`, `$485.25`, `2026-05-10`)
+> 4. **`invoice4_nexus_software.pdf`**: Nexus Cloud Systems Inc (`NXS-99201`, `$2,100.00`, `2026-06-01`)
+> 5. **`invoice5_summit_consulting.pdf`**: Summit Advisory Group (`SAG-77310`, `$5,500.00`, `2026-07-22`)
+>
+> You can generate additional sample invoices anytime using the included [generate_invoices.py](file:///home/keith_krozario_altostrat_com/projects/docAi-test/generate_invoices.py) script.
 
 ---
 
