@@ -65,7 +65,7 @@ resource "null_resource" "update_processor_schema" {
   }
 
   provisioner "local-exec" {
-    command = "bash ${path.module}/update_schema.sh '${var.location}' '${google_document_ai_processor.custom_extractor.id}' '${path.module}/${var.schema_file}'"
+    command = "bash ${path.module}/../scripts/update_schema.sh '${var.location}' '${google_document_ai_processor.custom_extractor.id}' '${path.module}/${var.schema_file}'"
   }
 
   depends_on = [
@@ -84,7 +84,7 @@ resource "null_resource" "initialize_processor_dataset" {
   }
 
   provisioner "local-exec" {
-    command = "bash ${path.module}/update_dataset.sh '${var.location}' '${google_document_ai_processor.custom_extractor.id}' '${google_storage_bucket.docai_bucket[0].name}'"
+    command = "bash ${path.module}/../scripts/update_dataset.sh '${var.location}' '${google_document_ai_processor.custom_extractor.id}' '${google_storage_bucket.docai_bucket[0].name}'"
   }
 
   depends_on = [
@@ -95,11 +95,11 @@ resource "null_resource" "initialize_processor_dataset" {
 
 # Upload Sample Documents to Cloud Storage (Step 1)
 resource "google_storage_bucket_object" "sample_documents" {
-  for_each = var.create_gcs_bucket ? fileset("${path.module}/samples", "*.pdf") : []
+  for_each = var.create_gcs_bucket ? fileset("${path.module}/../samples", "*.pdf") : []
 
   name   = "source-docs/${each.value}"
   bucket = google_storage_bucket.docai_bucket[0].name
-  source = "${path.module}/samples/${each.value}"
+  source = "${path.module}/../samples/${each.value}"
 
   depends_on = [
     google_storage_bucket.docai_bucket

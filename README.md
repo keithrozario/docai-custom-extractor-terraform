@@ -14,6 +14,33 @@ This project provides an automated Terraform setup to provision a **Google Cloud
 
 ---
 
+---
+
+## 📁 Repository Folder Structure
+
+```text
+.
+├── terraform/                # Terraform IaC configurations
+│   ├── main.tf               # Core resources (Processor, GCS Bucket, Schema & Dataset provisioning)
+│   ├── variables.tf          # Input variables & defaults
+│   ├── outputs.tf            # Deployment outputs (processor_id, bucket_name)
+│   ├── providers.tf          # Terraform Google provider configuration
+│   ├── schema.json           # Custom Extractor JSON entity schema
+│   └── terraform.tfvars.example
+├── scripts/                  # Shell & Python helper scripts
+│   ├── import_documents.sh   # Import GCS documents into Document AI Dataset
+│   ├── update_schema.sh      # PATCH processor datasetSchema via REST API
+│   ├── update_dataset.sh     # PATCH processor dataset binding via REST API
+│   ├── train_version.sh      # Trigger custom model version fine-tuning
+│   ├── publish_version.sh    # Set active default processor model version
+│   └── generate_invoices.py  # Python script to generate synthetic test invoice PDFs
+├── samples/                  # 5 sample test invoice PDFs
+├── README.md                 # Project documentation
+└── .gitignore                # Git ignore rules
+```
+
+---
+
 ## 📋 Prerequisites
 
 Before starting, ensure you have the following installed and configured:
@@ -37,9 +64,9 @@ gcloud config set project YOUR_PROJECT_ID
 
 ---
 
-## 🧩 Understanding the Custom Extractor Schema (`schema.json`)
+## 🧩 Understanding the Custom Extractor Schema (`terraform/schema.json`)
 
-The `schema.json` file dictates **which entities/fields** Document AI will extract from incoming documents.
+The `terraform/schema.json` file dictates **which entities/fields** Document AI will extract from incoming documents.
 
 ### Schema Structure & Schema Syntax
 
@@ -91,45 +118,25 @@ The `schema.json` file dictates **which entities/fields** Document AI will extra
 | `valueType` | `string` | Field data type. Options: `string`, `money`, `datetime`, `integer`, `float`, `boolean`, `address`. |
 | `occurrenceType` | `string` | Occurrence constraint:<br>• `OPTIONAL_ONCE`: Field occurs 0 or 1 time.<br>• `OPTIONAL_MULTIPLE`: Field occurs 0 or more times.<br>• `REQUIRED_ONCE`: Field must appear once.<br>• `REQUIRED_MULTIPLE`: Field must appear 1 or more times. |
 
-### Adding Nested Line Items / Table Schema
-To add repeated table rows or line items, add a property with `valueType: "object"` and define child `properties`:
-
-```json
-{
-  "name": "line_item",
-  "displayName": "Line Item",
-  "valueType": "object",
-  "occurrenceType": "OPTIONAL_MULTIPLE",
-  "properties": [
-    {
-      "name": "item_description",
-      "displayName": "Description",
-      "valueType": "string",
-      "occurrenceType": "OPTIONAL_ONCE"
-    },
-    {
-      "name": "item_amount",
-      "displayName": "Amount",
-      "valueType": "money",
-      "occurrenceType": "OPTIONAL_ONCE"
-    }
-  ]
-}
-```
-
 ---
 
 ## 🚀 Spinning Up From Scratch
 
-### Step 1: Clone or Prepare Configuration
+### Step 1: Change to Terraform Directory
+Navigate into the `terraform/` folder:
+
+```bash
+cd terraform
+```
+
+### Step 2: Configure `terraform.tfvars`
 Create your local environment configuration file from the example template:
 
 ```bash
 cp terraform.tfvars.example terraform.tfvars
 ```
 
-### Step 2: Configure `terraform.tfvars`
-Edit `terraform.tfvars` to set your target GCP Project ID and settings:
+Edit `terraform.tfvars` to set your target GCP Project ID:
 
 ```hcl
 project_id             = "your-gcp-project-id"
@@ -186,6 +193,7 @@ To run instant zero-shot document extraction without fine-tuning:
 
 1. **Deploy Infrastructure**:
    ```bash
+   cd terraform
    terraform apply -auto-approve
    ```
    This automatically provisions the processor, Cloud Storage bucket, dataset, applies `schema.json`, and uploads sample documents to `gs://<bucket_name>/source-docs/`.
@@ -199,7 +207,7 @@ To run instant zero-shot document extraction without fine-tuning:
 
 > [!NOTE]
 > **When is Fine-Tuning Needed?**
-> Custom model fine-tuning (`train_version.sh`) is **100% optional**. You only need to fine-tune if you have complex edge-case documents that require custom model weight adjustments beyond the standard Foundation Model capabilities.
+> Custom model fine-tuning (`scripts/train_version.sh`) is **100% optional**. You only need to fine-tune if you have complex edge-case documents that require custom model weight adjustments beyond standard Foundation Model capabilities.
 >
 > **Prerequisite for Fine-Tuning**: Fine-tuning requires at least **1 or more documents with ground-truth human bounding-box annotations** added via the Document AI Google Cloud Console Workbench UI.
 
@@ -209,41 +217,41 @@ To run instant zero-shot document extraction without fine-tuning:
 
 ---
 
-### Step 2: Import Documents into Dataset (`import_documents.sh`)
+### Step 2: Import Documents into Dataset (`scripts/import_documents.sh`)
 
-Import uploaded documents into the Document AI Dataset using [import_documents.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/import_documents.sh):
+Import uploaded documents into the Document AI Dataset using [scripts/import_documents.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/scripts/import_documents.sh):
 
 ```bash
-./import_documents.sh <location> <processor_id> <bucket_name>
+./scripts/import_documents.sh <location> <processor_id> <bucket_name>
 
 # Example:
-./import_documents.sh us projects/YOUR_PROJECT_ID/locations/us/processors/YOUR_PROCESSOR_ID docai-YOUR_PROJECT_ID-a6dfe5e7
+./scripts/import_documents.sh us projects/YOUR_PROJECT_ID/locations/us/processors/YOUR_PROCESSOR_ID docai-YOUR_PROJECT_ID-a6dfe5e7
 ```
 
 ---
 
-### Step 3: (Optional) Fine-Tune Custom Processor Version (`train_version.sh`)
+### Step 3: (Optional) Fine-Tune Custom Processor Version (`scripts/train_version.sh`)
 
-If you have annotated documents in your dataset and wish to train a dedicated custom `ProcessorVersion`, execute [train_version.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/train_version.sh):
+If you have annotated documents in your dataset and wish to train a dedicated custom `ProcessorVersion`, execute [scripts/train_version.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/scripts/train_version.sh):
 
 ```bash
-./train_version.sh <location> <processor_id> [version_display_name] [base_version]
+./scripts/train_version.sh <location> <processor_id> [version_display_name] [base_version]
 
 # Example:
-./train_version.sh us projects/YOUR_PROJECT_ID/locations/us/processors/YOUR_PROCESSOR_ID v1-custom-extractor
+./scripts/train_version.sh us projects/YOUR_PROJECT_ID/locations/us/processors/YOUR_PROCESSOR_ID v1-custom-extractor
 ```
 
 ---
 
-### Step 4: (Optional) Publish Default Processor Version (`publish_version.sh`)
+### Step 4: (Optional) Publish Default Processor Version (`scripts/publish_version.sh`)
 
-To set a newly fine-tuned processor version as the active default model version, execute [publish_version.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/publish_version.sh):
+To set a newly fine-tuned processor version as the active default model version, execute [scripts/publish_version.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/scripts/publish_version.sh):
 
 ```bash
-./publish_version.sh <location> <processor_id> <version_id>
+./scripts/publish_version.sh <location> <processor_id> <version_id>
 
 # Example:
-./publish_version.sh us projects/YOUR_PROJECT_ID/locations/us/processors/YOUR_PROCESSOR_ID 655bfece7ae37a6c
+./scripts/publish_version.sh us projects/YOUR_PROJECT_ID/locations/us/processors/YOUR_PROCESSOR_ID 655bfece7ae37a6c
 ```
 
 ---
