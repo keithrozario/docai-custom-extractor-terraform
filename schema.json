@@ -1,0 +1,38 @@
+{
+  "documentSchema": {
+    "entityTypes": [
+      {
+        "name": "custom_extraction_document_type",
+        "baseTypes": [
+          "document"
+        ],
+        "properties": [
+          {
+            "name": "invoice_number",
+            "displayName": "Invoice Number",
+            "valueType": "string",
+            "occurrenceType": "OPTIONAL_ONCE"
+          },
+          {
+            "name": "total_amount",
+            "displayName": "Total Amount",
+            "valueType": "money",
+            "occurrenceType": "OPTIONAL_ONCE"
+          },
+          {
+            "name": "invoice_date",
+            "displayName": "Invoice Date",
+            "valueType": "datetime",
+            "occurrenceType": "OPTIONAL_ONCE"
+          },
+          {
+            "name": "supplier_name",
+            "displayName": "Supplier Name",
+            "valueType": "string",
+            "occurrenceType": "OPTIONAL_ONCE"
+          }
+        ]
+      }
+    ]
+  }
+}

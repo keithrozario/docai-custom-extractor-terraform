@@ -1,0 +1,11 @@
+# Copy this file to terraform.tfvars and set your values
+
+project_id             = "your-gcp-project-id"
+region                 = "us-central1"
+location               = "us"
+processor_display_name = "my-custom-extractor"
+create_gcs_bucket      = true
+enable_apis            = true
+apply_schema           = true
+schema_file            = "schema.json"
+create_dataset         = true

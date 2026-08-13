@@ -1,0 +1,21 @@
+# Terraform transient & state files
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+!.tfvars.example
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI & Environment
+.env
+*.log
+
+# OS / Editor generated
+.DS_Store
+.idea/
+.vscode/
