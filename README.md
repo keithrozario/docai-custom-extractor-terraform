@@ -192,89 +192,50 @@ In Document AI Workbench:
 
 ---
 
-### Step 1: Upload Raw Training / Test Documents to GCS
+### Step 1: Upload Raw Training / Test Documents to GCS (Automated in Terraform)
 
-Upload PDF or image document files into your bucket:
+> **Baked directly into Terraform**:
+> All sample PDFs located in the `samples/` folder are **automatically uploaded** to `gs://<bucket_name>/source-docs/` during `terraform apply` via the `google_storage_bucket_object.sample_documents` resource.
+>
+> If you add new documents to `samples/`, simply re-run `terraform apply` to upload them automatically.
+
+---
+
+### Step 2: Import Documents into Dataset (`import_documents.sh`)
+
+Import the uploaded documents from Cloud Storage into the Document AI Dataset using [import_documents.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/import_documents.sh):
 
 ```bash
-# Upload sample invoice documents to Cloud Storage
-gcloud storage cp samples/*.pdf gs://YOUR_BUCKET_NAME/source-docs/
+./import_documents.sh <location> <processor_id> <bucket_name>
+
+# Example:
+./import_documents.sh us projects/YOUR_PROJECT_ID/locations/us/processors/YOUR_PROCESSOR_ID docai-YOUR_PROJECT_ID-a6dfe5e7
 ```
 
 ---
 
-### Step 2: Import Documents into Dataset
+### Step 3: Train / Fine-Tune a Custom Processor Version (`train_version.sh`)
 
-Import documents into the processor dataset using the `importDocuments` REST endpoint:
+If you have annotated documents and wish to fine-tune a dedicated custom `ProcessorVersion`, execute [train_version.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/train_version.sh):
 
 ```bash
-LOCATION="us"
-PROCESSOR_ID="projects/YOUR_PROJECT_ID/locations/us/processors/YOUR_PROCESSOR_ID"
-BUCKET_NAME="YOUR_BUCKET_NAME"
+./train_version.sh <location> <processor_id> [version_display_name] [base_version]
 
-curl -X POST \
-  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "batchDocumentsImportConfigs": [
-      {
-        "batchInputConfig": {
-          "gcsPrefix": {
-            "gcsUriPrefix": "gs://'${BUCKET_NAME}'/source-docs/"
-          }
-        },
-        "autoSplitConfig": {
-          "trainingSplitRatio": 0.8
-        }
-      }
-    ]
-  }' \
-  "https://${LOCATION}-documentai.googleapis.com/v1beta3/${PROCESSOR_ID}/dataset:importDocuments"
+# Example:
+./train_version.sh us projects/YOUR_PROJECT_ID/locations/us/processors/YOUR_PROCESSOR_ID v1-custom-extractor
 ```
 
 ---
 
-### Step 3: Train / Fine-Tune a Custom Processor Version
+### Step 4: Publish / Set Default Processor Version (`publish_version.sh`)
 
-If you have annotated documents and wish to fine-tune a dedicated custom `ProcessorVersion`:
-
-```bash
-LOCATION="us"
-PROCESSOR_ID="projects/YOUR_PROJECT_ID/locations/us/processors/YOUR_PROCESSOR_ID"
-
-curl -X POST \
-  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "processorVersion": {
-      "displayName": "v1-custom-extractor"
-    },
-    "baseProcessorVersion": "'${PROCESSOR_ID}'/processorVersions/pretrained-foundation-model-v1.5-2025-05-05",
-    "foundationModelTuningOptions": {
-      "trainSteps": 200
-    }
-  }' \
-  "https://${LOCATION}-documentai.googleapis.com/v1beta3/${PROCESSOR_ID}/processorVersions:train"
-```
-
----
-
-### Step 4: Publish / Set Default Processor Version
-
-To set a newly trained version as the active default model version:
+To set a newly trained processor version as the active default model version, execute [publish_version.sh](file:///home/keith_krozario_altostrat_com/projects/docAi-test/publish_version.sh):
 
 ```bash
-LOCATION="us"
-PROCESSOR_ID="projects/YOUR_PROJECT_ID/locations/us/processors/YOUR_PROCESSOR_ID"
-VERSION_ID="YOUR_TRAINED_VERSION_ID"
+./publish_version.sh <location> <processor_id> <version_id>
 
-curl -X POST \
-  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "defaultProcessorVersion": "'${PROCESSOR_ID}'/processorVersions/'${VERSION_ID}'"
-  }' \
-  "https://${LOCATION}-documentai.googleapis.com/v1beta3/${PROCESSOR_ID}:setDefaultProcessorVersion"
+# Example:
+./publish_version.sh us projects/YOUR_PROJECT_ID/locations/us/processors/YOUR_PROCESSOR_ID 655bfece7ae37a6c
 ```
 
 ---
@@ -288,7 +249,7 @@ You can process any PDF or image file immediately using the REST API or Python S
 ```bash
 LOCATION="us"
 PROCESSOR_ID="projects/YOUR_PROJECT_ID/locations/us/processors/YOUR_PROCESSOR_ID"
-GCS_DOCUMENT_URI="gs://YOUR_BUCKET_NAME/source-docs/invoice1.pdf"
+GCS_DOCUMENT_URI="gs://YOUR_BUCKET_NAME/source-docs/invoice1_acme_corp.pdf"
 
 curl -X POST \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
@@ -309,28 +270,28 @@ curl -X POST \
     "entities": [
       {
         "type": "invoice_number",
-        "mentionText": "INV-100",
-        "confidence": 0.99998
+        "mentionText": "INV-2026-001",
+        "confidence": 0.99999
       },
       {
         "type": "supplier_name",
-        "mentionText": "CONTOSO LTD.",
-        "confidence": 0.99993
+        "mentionText": "Acme Industrial Solutions",
+        "confidence": 0.99998
       },
       {
         "type": "invoice_date",
-        "mentionText": "11/15/2019",
+        "mentionText": "2026-03-15",
         "confidence": 0.99998,
         "normalizedValue": {
-          "text": "2019-11-15"
+          "text": "2026-03-15"
         }
       },
       {
         "type": "total_amount",
-        "mentionText": "$610.00",
-        "confidence": 0.71318,
+        "mentionText": "$1,250.00",
+        "confidence": 0.74709,
         "normalizedValue": {
-          "text": "610 USD"
+          "text": "1250 USD"
         }
       }
     ]
